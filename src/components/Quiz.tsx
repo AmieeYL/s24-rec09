@@ -1,46 +1,36 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import './Quiz.css'
-import QuizQuestion from '../core/QuizQuestion';
-
-interface QuizState {
-  questions: QuizQuestion[]
-  currentQuestionIndex: number
-  selectedAnswer: string | null
-  score: number
-}
+import QuizCore from '../core/QuizCore';
 
 const Quiz: React.FC = () => {
-  const initialQuestions: QuizQuestion[] = [
-    {
-      question: 'What is the capital of France?',
-      options: ['London', 'Berlin', 'Paris', 'Madrid'],
-      correctAnswer: 'Paris',
-    },
-  ];
-  const [state, setState] = useState<QuizState>({
-    questions: initialQuestions,
-    currentQuestionIndex: 0,  // Initialize the current question index.
-    selectedAnswer: null,  // Initialize the selected answer.
-    score: 0,  // Initialize the score.
-  });
+  // Initialize QuizCore instance
+  const [quizCore] = useState(new QuizCore());
+
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [update, setUpdate] = useState(0); // Used to force re-render
+
+  useEffect(() => {
+    setSelectedAnswer(null);
+  }, [update]);
 
   const handleOptionSelect = (option: string): void => {
-    setState((prevState) => ({ ...prevState, selectedAnswer: option }));
-  }
-
+    setSelectedAnswer(option);
+    quizCore.answerQuestion(option);
+  };
 
   const handleButtonClick = (): void => {
-    // Task3: Implement the logic for button click, such as moving to the next question.
-  } 
+    quizCore.nextQuestion();
+    setUpdate(update + 1);
+  };
 
-  const { questions, currentQuestionIndex, selectedAnswer, score } = state;
-  const currentQuestion = questions[currentQuestionIndex];
+  const currentQuestion = quizCore.getCurrentQuestion();
+
 
   if (!currentQuestion) {
     return (
       <div>
         <h2>Quiz Completed</h2>
-        <p>Final Score: {score} out of {questions.length}</p>
+        <p>Final Score: {quizCore.getScore()} out of {quizCore.getTotalQuestions()}</p>
       </div>
     );
   }
